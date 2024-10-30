@@ -15,11 +15,11 @@ public class User {
     @Column(name = "nombre_user")
     private String nombre_user;
 
-    @Column(name = "password_user")
+    @Column(name = "password_user", nullable = true) // Permitir nulo
     private String password_user;
 
-    @Column(name = "correo_user")
-    private String correo_user;
+    @Column(name = "`correo_user`")
+    private String correoUser;
 
     @Column(name = "fecha_registro")
     private Date fecha_registro;
@@ -56,11 +56,11 @@ public class User {
     }
 
     public String getCorreo_user() {
-        return correo_user;
+        return correoUser;
     }
 
     public void setCorreo_user(String correo_user) {
-        this.correo_user = correo_user;
+        this.correoUser = correo_user;
     }
 
     public Date getFecha_registro() {
