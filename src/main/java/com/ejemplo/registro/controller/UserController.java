@@ -1,6 +1,7 @@
 package com.ejemplo.registro.controller;
 
 import com.ejemplo.registro.model.FacebookUserRequest;
+import com.ejemplo.registro.model.MercadoLibreUserRequest;
 import com.ejemplo.registro.model.GoogleUserRequest;
 import com.ejemplo.registro.model.User;
 import com.ejemplo.registro.repository.UserRepository;
@@ -79,6 +80,66 @@ public class UserController {
             return "Registro con Facebook exitoso";
         } else {
             return "Token de Facebook no válido o expirado";
+        }
+    }
+
+    @PostMapping("/register/mercadolibre")
+    public String registerUserWithMercadoLibre(@RequestBody MercadoLibreUserRequest mercadoLibreUserRequest) {
+        String authorizationCode = mercadoLibreUserRequest.getAuthorizationCode();
+        System.out.println("Código de autorización recibido: " + authorizationCode);
+        String clientId = "1331780205525766"; // Reemplaza con tu Client ID
+        String clientSecret = "aR6XSzJy9t7OmmufkImOuPLA123exh9F"; // Reemplaza con tu Client Secret
+        String redirectUri = "https://5488-187-190-206-198.ngrok-free.app"; // O tu URI de redirección
+
+        // URL de autenticación de Mercado Libre
+        String tokenUrl = "https://api.mercadolibre.com/oauth/token";
+
+        // Crear los parámetros para obtener el token
+        Map<String, String> tokenRequest = Map.of(
+                "grant_type", "authorization_code",
+                "client_id", clientId,
+                "client_secret", clientSecret,
+                "code", authorizationCode,
+                "redirect_uri", redirectUri
+        );
+
+        // Realiza la solicitud para obtener el token de acceso
+        RestTemplate restTemplate = new RestTemplate();
+        ResponseEntity<Map> tokenResponse = restTemplate.postForEntity(tokenUrl, tokenRequest, Map.class);
+
+        if (tokenResponse.getStatusCode() == HttpStatus.OK) {
+            Map<String, Object> tokenData = tokenResponse.getBody();
+            String accessToken = (String) tokenData.get("access_token");
+
+            // Usa el token de acceso para obtener la información del usuario
+            String userInfoUrl = "https://api.mercadolibre.com/users/me?access_token=" + accessToken;
+            ResponseEntity<Map> userInfoResponse = restTemplate.getForEntity(userInfoUrl, Map.class);
+
+            if (userInfoResponse.getStatusCode() == HttpStatus.OK) {
+                Map<String, Object> userData = userInfoResponse.getBody();
+                String email = (String) userData.get("email");
+                String name = (String) userData.get("nickname"); // Puede que el nombre se devuelva como 'nickname'
+
+                // Verifica si el usuario ya existe por correo electrónico
+                Optional<User> existingUser = userRepository.findByCorreoUser(email);
+                if (existingUser.isPresent()) {
+                    return "El usuario ya está registrado con Mercado Libre";
+                }
+
+                // Crea un nuevo usuario con los datos de Mercado Libre
+                User user = new User();
+                user.setCorreo_user(email);
+                user.setNombre_user(name);
+                user.setFecha_registro(new Date());
+                user.setRedSocial_ID_Social(3); // Asigna '3' para registro con Mercado Libre
+
+                userRepository.save(user);
+                return "Registro con Mercado Libre exitoso";
+            } else {
+                return "Error al obtener la información del usuario de Mercado Libre";
+            }
+        } else {
+            return "Error al obtener el token de Mercado Libre";
         }
     }
 
