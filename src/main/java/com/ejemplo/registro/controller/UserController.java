@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Date;
@@ -89,7 +90,7 @@ public class UserController {
         System.out.println("Código de autorización recibido: " + authorizationCode);
         String clientId = "1331780205525766"; // Reemplaza con tu Client ID
         String clientSecret = "aR6XSzJy9t7OmmufkImOuPLA123exh9F"; // Reemplaza con tu Client Secret
-        String redirectUri = "https://5488-187-190-206-198.ngrok-free.app"; // O tu URI de redirección
+        String redirectUri = "https://65d6-2806-2f0-9360-fb43-44ed-db-f1c5-efb2.ngrok-free.app"; // O tu URI de redirección
 
         // URL de autenticación de Mercado Libre
         String tokenUrl = "https://api.mercadolibre.com/oauth/token";
@@ -204,6 +205,65 @@ public class UserController {
             return ResponseEntity.ok(user.get());
         } else {
             return ResponseEntity.status(404).body("Usuario no encontrado. Debes registrarte primero.");
+        }
+    }
+
+    @PostMapping("/login/mercadolibre")
+    public ResponseEntity<?> loginWithMercadoLibre(@RequestBody MercadoLibreUserRequest mercadoLibreUserRequest) {
+        String authorizationCode = mercadoLibreUserRequest.getAuthorizationCode();
+        System.out.println("Nuevo código de autorización recibido: " + authorizationCode);
+
+        String clientId = "1331780205525766";
+        String clientSecret = "aR6XSzJy9t7OmmufkImOuPLA123exh9F";
+        String redirectUri = "https://65d6-2806-2f0-9360-fb43-44ed-db-f1c5-efb2.ngrok-free.app";
+
+        String tokenUrl = "https://api.mercadolibre.com/oauth/token";
+
+        Map<String, String> tokenRequest = Map.of(
+                "grant_type", "authorization_code",
+                "client_id", clientId,
+                "client_secret", clientSecret,
+                "code", authorizationCode,
+                "redirect_uri", redirectUri
+        );
+
+        try {
+            RestTemplate restTemplate = new RestTemplate();
+            ResponseEntity<Map> tokenResponse = restTemplate.postForEntity(tokenUrl, tokenRequest, Map.class);
+
+            if (tokenResponse.getStatusCode() == HttpStatus.OK) {
+                Map<String, Object> tokenData = tokenResponse.getBody();
+                String accessToken = (String) tokenData.get("access_token");
+
+                String userInfoUrl = "https://api.mercadolibre.com/users/me?access_token=" + accessToken;
+                ResponseEntity<Map> userInfoResponse = restTemplate.getForEntity(userInfoUrl, Map.class);
+
+                if (userInfoResponse.getStatusCode() == HttpStatus.OK) {
+                    Map<String, Object> userData = userInfoResponse.getBody();
+                    String email = (String) userData.get("email");
+                    String name = (String) userData.get("nickname");
+
+                    Optional<User> user = userRepository.findByCorreoUserAndRedSocial_ID_Social(email, 3);
+                    if (user.isPresent()) {
+                        Map<String, String> response = Map.of(
+                                "message", "Inicio de sesión exitoso",
+                                "user", user.get().getNombre_user()
+                        );
+                        return ResponseEntity.ok(response);
+                    } else {
+                        Map<String, String> response = Map.of("message", "Usuario no encontrado");
+                        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+                    }
+                } else {
+                    return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Error al obtener información del usuario"));
+                }
+            } else {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Error al obtener el token de Mercado Libre"));
+            }
+        } catch (HttpClientErrorException e) {
+            return ResponseEntity.status(e.getStatusCode()).body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", "Error interno del servidor"));
         }
     }
 
