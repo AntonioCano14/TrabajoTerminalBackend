@@ -194,6 +194,19 @@ public class UserController {
         }
     }
 
+    @PostMapping("/login/google")
+    public ResponseEntity<?> loginWithGoogle(@RequestBody GoogleUserRequest googleUserRequest) {
+        String email = googleUserRequest.getEmail();
+
+        Optional<User> user = userRepository.findByCorreoUserAndRedSocial_ID_Social(email, 4);
+
+        if (user.isPresent()) {
+            return ResponseEntity.ok(user.get());
+        } else {
+            return ResponseEntity.status(404).body("Usuario no encontrado. Debes registrarte primero.");
+        }
+    }
+
 
     @GetMapping("/vivo")
     public String serverVivo() {
