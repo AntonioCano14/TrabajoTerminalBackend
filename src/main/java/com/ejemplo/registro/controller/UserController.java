@@ -158,12 +158,15 @@ public class UserController {
             // Validar contraseña solo si es un inicio de sesión con correo electrónico
             if (redSocialId == 1) {
                 if (foundUser.getPassword_user() != null && foundUser.getPassword_user().equals(password)) {
+                    foundUser.setUltima_sesion(new Date());
+                    userRepository.save(foundUser);  // Actualiza la última sesión
                     return ResponseEntity.ok(foundUser);
                 } else {
                     return ResponseEntity.status(401).body("Contraseña incorrecta");
                 }
             } else {
-                // Inicio de sesión con redes sociales no requiere validación de contraseña
+                foundUser.setUltima_sesion(new Date());
+                userRepository.save(foundUser);  // Actualiza la última sesión
                 return ResponseEntity.ok(foundUser);
             }
         } else {
@@ -186,6 +189,9 @@ public class UserController {
             Optional<User> user = userRepository.findByCorreoUserAndRedSocial_ID_Social(email, 2);
 
             if (user.isPresent()) {
+                User foundUser = user.get();
+                foundUser.setUltima_sesion(new Date());
+                userRepository.save(foundUser);  // Actualiza la última sesión
                 return ResponseEntity.ok(user.get());
             } else {
                 return ResponseEntity.status(404).body("Usuario no encontrado. Debes registrarte primero.");
@@ -202,6 +208,9 @@ public class UserController {
         Optional<User> user = userRepository.findByCorreoUserAndRedSocial_ID_Social(email, 4);
 
         if (user.isPresent()) {
+            User foundUser = user.get();
+            foundUser.setUltima_sesion(new Date());
+            userRepository.save(foundUser);  // Actualiza la última sesión
             return ResponseEntity.ok(user.get());
         } else {
             return ResponseEntity.status(404).body("Usuario no encontrado. Debes registrarte primero.");
@@ -245,6 +254,9 @@ public class UserController {
 
                     Optional<User> user = userRepository.findByCorreoUserAndRedSocial_ID_Social(email, 3);
                     if (user.isPresent()) {
+                        User foundUser = user.get();
+                        foundUser.setUltima_sesion(new Date());
+                        userRepository.save(foundUser);  // Actualiza la última sesión
                         Map<String, String> response = Map.of(
                                 "message", "Inicio de sesión exitoso",
                                 "user", user.get().getNombre_user()

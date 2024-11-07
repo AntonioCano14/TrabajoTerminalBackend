@@ -78,4 +78,7 @@ public class User {
     public void setRedSocial_ID_Social(int redSocial_ID_Social) {
         this.RedSocial_ID_Social = redSocial_ID_Social;
     }
+
+    public void setUltima_sesion(Date ultima) { this.Ultima_sesion = ultima;
+    }
 }
