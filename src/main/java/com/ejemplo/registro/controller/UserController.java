@@ -170,6 +170,29 @@ public class UserController {
         }
     }
 
+    @PostMapping("/login/facebook")
+    public ResponseEntity<?> loginWithFacebook(@RequestBody FacebookUserRequest facebookUserRequest) {
+        String accessToken = facebookUserRequest.getAccessToken();
+        String facebookGraphUrl = "https://graph.facebook.com/me?fields=id,name,email&access_token=" + accessToken;
+
+        RestTemplate restTemplate = new RestTemplate();
+        ResponseEntity<Map> response = restTemplate.getForEntity(facebookGraphUrl, Map.class);
+
+        if (response.getStatusCode() == HttpStatus.OK) {
+            Map<String, Object> userData = response.getBody();
+            String email = (String) userData.get("email");
+
+            Optional<User> user = userRepository.findByCorreoUserAndRedSocial_ID_Social(email, 2);
+
+            if (user.isPresent()) {
+                return ResponseEntity.ok(user.get());
+            } else {
+                return ResponseEntity.status(404).body("Usuario no encontrado. Debes registrarte primero.");
+            }
+        } else {
+            return ResponseEntity.status(401).body("Token de Facebook no válido o expirado");
+        }
+    }
 
 
     @GetMapping("/vivo")
