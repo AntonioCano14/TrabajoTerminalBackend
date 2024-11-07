@@ -143,6 +143,35 @@ public class UserController {
         }
     }
 
+    @PostMapping("/login")
+    public ResponseEntity<?> loginUser(
+            @RequestParam String correo,
+            @RequestParam String password,
+            @RequestParam int redSocialId
+    ) {
+        Optional<User> user = userRepository.findByCorreoUserAndRedSocial_ID_Social(correo, redSocialId);
+
+        if (user.isPresent()) {
+            User foundUser = user.get();
+
+            // Validar contraseña solo si es un inicio de sesión con correo electrónico
+            if (redSocialId == 1) {
+                if (foundUser.getPassword_user() != null && foundUser.getPassword_user().equals(password)) {
+                    return ResponseEntity.ok(foundUser);
+                } else {
+                    return ResponseEntity.status(401).body("Contraseña incorrecta");
+                }
+            } else {
+                // Inicio de sesión con redes sociales no requiere validación de contraseña
+                return ResponseEntity.ok(foundUser);
+            }
+        } else {
+            return ResponseEntity.status(404).body("Usuario no encontrado o método de inicio de sesión incorrecto");
+        }
+    }
+
+
+
     @GetMapping("/vivo")
     public String serverVivo() {
         return "Servidor Vivo";
