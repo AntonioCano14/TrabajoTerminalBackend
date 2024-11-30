@@ -24,20 +24,29 @@ public class UserController {
     private UserRepository userRepository;
 
     @PostMapping("/register")
-    public String registerUser(@RequestBody User user) {
+    public ResponseEntity<String> registerUser(@RequestBody User user) {
+        // Verificar si ya existe un usuario con el correo y ID social 1
+        Optional<User> existingUser = userRepository.findByCorreoUserAndRedSocial_ID_Social(user.getCorreo_user(), 1);
+        if (existingUser.isPresent()) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("El usuario ya está registrado con este correo y ID social 1");
+        }
+
+        // Si no existe, proceder con el registro
         user.setFecha_registro(new Date());
         user.setRedSocial_ID_Social(1); // Asigna '1' para correo electrónico
         userRepository.save(user);
-        return "Registro exitoso";
+        return ResponseEntity.status(HttpStatus.CREATED).body("Registro exitoso");
     }
 
+
+
     @PostMapping("/register/google")
-    public String registerUserWithGoogle(@RequestBody GoogleUserRequest googleUserRequest) {
-        // Verifica si el usuario ya existe por correo electrónico
-        Optional<User> existingUser = userRepository.findByCorreoUser(googleUserRequest.getEmail());
+    public ResponseEntity<String> registerUserWithGoogle(@RequestBody GoogleUserRequest googleUserRequest) {
+        // Verifica si el usuario ya existe por correo electrónico y RedSocial_ID_Social == 4
+        Optional<User> existingUser = userRepository.findByCorreoUserAndRedSocial_ID_Social(googleUserRequest.getEmail(), 4);
 
         if (existingUser.isPresent()) {
-            return "El usuario ya está registrado con Google";
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("El usuario ya está registrado con Google");
         }
 
         // Crea un nuevo usuario con los datos de Google
@@ -48,11 +57,12 @@ public class UserController {
         user.setRedSocial_ID_Social(4); // Asigna '4' para registro con Google
 
         userRepository.save(user);
-        return "Registro con Google exitoso";
+        return ResponseEntity.status(HttpStatus.CREATED).body("Registro con Google exitoso");
     }
 
+
     @PostMapping("/register/facebook")
-    public String registerUserWithFacebook(@RequestBody FacebookUserRequest facebookUserRequest) {
+    public ResponseEntity<String> registerUserWithFacebook(@RequestBody FacebookUserRequest facebookUserRequest) {
         String accessToken = facebookUserRequest.getAccessToken();
         String facebookGraphUrl = "https://graph.facebook.com/me?fields=id,name,email&access_token=" + accessToken;
 
@@ -64,10 +74,11 @@ public class UserController {
             String email = (String) userData.get("email");
             String name = (String) userData.get("name");
 
-            // Verificar si el usuario ya existe por correo electrónico
-            Optional<User> existingUser = userRepository.findByCorreoUser(email);
+            // Verificar si el usuario ya existe por correo electrónico y red social
+            Optional<User> existingUser = userRepository.findByCorreoUserAndRedSocial_ID_Social(email, 2);
             if (existingUser.isPresent()) {
-                return "El usuario ya está registrado con Facebook";
+                // Si el usuario ya existe, devolver un conflicto HTTP 409
+                return ResponseEntity.status(HttpStatus.CONFLICT).body("El usuario ya está registrado con Facebook");
             }
 
             // Crear un nuevo usuario con los datos de Facebook
@@ -78,19 +89,22 @@ public class UserController {
             user.setRedSocial_ID_Social(2); // Asigna '2' para registro con Facebook
 
             userRepository.save(user);
-            return "Registro con Facebook exitoso";
+            return ResponseEntity.status(HttpStatus.CREATED).body("Registro con Facebook exitoso");
         } else {
-            return "Token de Facebook no válido o expirado";
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Token de Facebook no válido o expirado");
         }
     }
 
+
+
     @PostMapping("/register/mercadolibre")
-    public String registerUserWithMercadoLibre(@RequestBody MercadoLibreUserRequest mercadoLibreUserRequest) {
+    public ResponseEntity<String> registerUserWithMercadoLibre(@RequestBody MercadoLibreUserRequest mercadoLibreUserRequest) {
         String authorizationCode = mercadoLibreUserRequest.getAuthorizationCode();
         System.out.println("Código de autorización recibido: " + authorizationCode);
+
         String clientId = "1331780205525766"; // Reemplaza con tu Client ID
         String clientSecret = "aR6XSzJy9t7OmmufkImOuPLA123exh9F"; // Reemplaza con tu Client Secret
-        String redirectUri = "https://65d6-2806-2f0-9360-fb43-44ed-db-f1c5-efb2.ngrok-free.app"; // O tu URI de redirección
+        String redirectUri = "https://c32c-34-56-155-250.ngrok-free.app"; // O tu URI de redirección
 
         // URL de autenticación de Mercado Libre
         String tokenUrl = "https://api.mercadolibre.com/oauth/token";
@@ -121,13 +135,14 @@ public class UserController {
                 String email = (String) userData.get("email");
                 String name = (String) userData.get("nickname"); // Puede que el nombre se devuelva como 'nickname'
 
-                // Verifica si el usuario ya existe por correo electrónico
-                Optional<User> existingUser = userRepository.findByCorreoUser(email);
+                // Verificar si el usuario ya existe por correo electrónico y red social (ID = 3 para Mercado Libre)
+                Optional<User> existingUser = userRepository.findByCorreoUserAndRedSocial_ID_Social(email, 3);
                 if (existingUser.isPresent()) {
-                    return "El usuario ya está registrado con Mercado Libre";
+                    // Si el usuario ya existe, devolver un conflicto HTTP 409
+                    return ResponseEntity.status(HttpStatus.CONFLICT).body("El usuario ya está registrado con Mercado Libre");
                 }
 
-                // Crea un nuevo usuario con los datos de Mercado Libre
+                // Crear un nuevo usuario con los datos de Mercado Libre
                 User user = new User();
                 user.setCorreo_user(email);
                 user.setNombre_user(name);
@@ -135,14 +150,16 @@ public class UserController {
                 user.setRedSocial_ID_Social(3); // Asigna '3' para registro con Mercado Libre
 
                 userRepository.save(user);
-                return "Registro con Mercado Libre exitoso";
+                return ResponseEntity.status(HttpStatus.CREATED).body("Registro con Mercado Libre exitoso");
             } else {
-                return "Error al obtener la información del usuario de Mercado Libre";
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error al obtener la información del usuario de Mercado Libre");
             }
         } else {
-            return "Error al obtener el token de Mercado Libre";
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error al obtener el token de Mercado Libre");
         }
     }
+
+
 
     @PostMapping("/login")
     public ResponseEntity<?> loginUser(

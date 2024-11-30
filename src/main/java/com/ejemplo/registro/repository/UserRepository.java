@@ -11,7 +11,9 @@ import java.util.Optional;
 @Repository
 public interface UserRepository extends JpaRepository<User, Integer> {
     Optional<User> findByCorreoUser(String correoUser);
+
     @Query("SELECT u FROM User u WHERE u.correoUser = :correo AND u.RedSocial_ID_Social = :redSocialId")
     Optional<User> findByCorreoUserAndRedSocial_ID_Social(@Param("correo") String correoUser, @Param("redSocialId") int RedSocial_ID_Social);
 }
+
 
