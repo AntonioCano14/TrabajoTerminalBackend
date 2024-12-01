@@ -235,13 +235,13 @@ public class UserController {
     }
 
     @PostMapping("/login/mercadolibre")
-    public ResponseEntity<?> loginWithMercadoLibre(@RequestBody MercadoLibreUserRequest mercadoLibreUserRequest) {
+    public ResponseEntity<User> loginWithMercadoLibre(@RequestBody MercadoLibreUserRequest mercadoLibreUserRequest) {
         String authorizationCode = mercadoLibreUserRequest.getAuthorizationCode();
         System.out.println("Nuevo código de autorización recibido: " + authorizationCode);
 
         String clientId = "1331780205525766";
         String clientSecret = "aR6XSzJy9t7OmmufkImOuPLA123exh9F";
-        String redirectUri = "https://65d6-2806-2f0-9360-fb43-44ed-db-f1c5-efb2.ngrok-free.app";
+        String redirectUri = "https://c32c-34-56-155-250.ngrok-free.app";
 
         String tokenUrl = "https://api.mercadolibre.com/oauth/token";
 
@@ -269,32 +269,32 @@ public class UserController {
                     String email = (String) userData.get("email");
                     String name = (String) userData.get("nickname");
 
+                    System.out.println("Correo obtenido de Mercado Libre: " + email);
+                    System.out.println("Nombre obtenido de Mercado Libre: " + name);
+
                     Optional<User> user = userRepository.findByCorreoUserAndRedSocial_ID_Social(email, 3);
                     if (user.isPresent()) {
                         User foundUser = user.get();
                         foundUser.setUltima_sesion(new Date());
                         userRepository.save(foundUser);  // Actualiza la última sesión
-                        Map<String, String> response = Map.of(
-                                "message", "Inicio de sesión exitoso",
-                                "user", user.get().getNombre_user()
-                        );
-                        return ResponseEntity.ok(response);
+                        return ResponseEntity.ok(foundUser); // Devuelve el objeto User directamente
                     } else {
-                        Map<String, String> response = Map.of("message", "Usuario no encontrado");
-                        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+                        System.out.println("El usuario con correo " + email + " no fue encontrado.");
+                        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
                     }
                 } else {
-                    return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Error al obtener información del usuario"));
+                    return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
                 }
             } else {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Error al obtener el token de Mercado Libre"));
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
             }
         } catch (HttpClientErrorException e) {
-            return ResponseEntity.status(e.getStatusCode()).body(Map.of("error", e.getMessage()));
+            return ResponseEntity.status(e.getStatusCode()).build();
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", "Error interno del servidor"));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
+
 
 
     @GetMapping("/vivo")
