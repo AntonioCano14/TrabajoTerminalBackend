@@ -2,6 +2,7 @@ package com.ejemplo.registro.model;
 
 import jakarta.persistence.*;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "historial")
@@ -18,7 +19,7 @@ public class Search {
     private String url;
 
     @Column(name = "fecha_busqueda", nullable = false)
-    private LocalDate fechaBusqueda;
+    private LocalDateTime fechaBusqueda;
 
     @Column(name = "User_ID_user", nullable = false)
     private int userId;
@@ -48,11 +49,11 @@ public class Search {
         this.url = url;
     }
 
-    public LocalDate getFechaBusqueda() {
+    public LocalDateTime getFechaBusqueda() {
         return fechaBusqueda;
     }
 
-    public void setFechaBusqueda(LocalDate fechaBusqueda) {
+    public void setFechaBusqueda(LocalDateTime fechaBusqueda) {
         this.fechaBusqueda = fechaBusqueda;
     }
 
