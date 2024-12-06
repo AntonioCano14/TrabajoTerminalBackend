@@ -13,6 +13,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -295,7 +296,10 @@ public class UserController {
         }
     }
 
-
+    @GetMapping("/users")
+    public List<User> obtenerUsuarios() {
+        return userRepository.findAll(); // Devuelve todos los usuarios desde la base de datos
+    }
 
     @GetMapping("/vivo")
     public String serverVivo() {
