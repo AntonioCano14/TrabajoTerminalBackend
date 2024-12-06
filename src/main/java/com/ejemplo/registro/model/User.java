@@ -71,14 +71,20 @@ public class User {
         this.fecha_registro = fecha_registro;
     }
 
+    public Date getUltima_sesion() {
+        return Ultima_sesion;
+    }
+
+    public void setUltima_sesion(Date ultima_sesion) {
+        this.Ultima_sesion = ultima_sesion;
+    }
+
+
     public int getRedSocial_ID_Social() {
         return RedSocial_ID_Social;
     }
 
     public void setRedSocial_ID_Social(int redSocial_ID_Social) {
         this.RedSocial_ID_Social = redSocial_ID_Social;
-    }
-
-    public void setUltima_sesion(Date ultima) { this.Ultima_sesion = ultima;
     }
 }
