@@ -339,6 +339,40 @@ public class UserController {
         }
     }
 
+    @PutMapping("/users/{id}/delete")
+    public ResponseEntity<String> eliminarUsuario(
+            @PathVariable int id,
+            @RequestParam int adminId) {
+
+        Optional<User> usuarioExistente = userRepository.findById(id);
+        if (usuarioExistente.isPresent()) {
+            User usuario = usuarioExistente.get();
+
+            // Conservar solo los datos necesarios y marcar como eliminado
+            usuario.setNombre_user(usuario.getNombre_user() + " (ELIMINADO)");
+            usuario.setCorreo_user(usuario.getCorreo_user() + " (ELIMINADO)");
+            usuario.setPassword_user(null); // Eliminar la contraseña
+            usuario.setFecha_registro(null); // Limpiar fecha de registro
+            usuario.setUltima_sesion(null); // Limpiar última sesión
+            userRepository.save(usuario);
+
+            // Registrar la acción en la tabla admin_has_user
+            AdminHasUser registro = new AdminHasUser();
+            AdminHasUserId registroId = new AdminHasUserId();
+            registroId.setAdmin_ID_admin(adminId);
+            registroId.setUser_ID_user(id);
+            registroId.setFecha_accion(new Date());
+            registroId.setHora(new Time(System.currentTimeMillis()));
+
+            registro.setId(registroId);
+            registro.setAccion("Eliminar");
+            adminHasUserRepository.save(registro);
+
+            return ResponseEntity.ok("Usuario eliminado exitosamente");
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuario no encontrado");
+        }
+    }
 
 
 
