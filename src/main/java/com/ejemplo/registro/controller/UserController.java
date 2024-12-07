@@ -1,9 +1,7 @@
 package com.ejemplo.registro.controller;
 
-import com.ejemplo.registro.model.FacebookUserRequest;
-import com.ejemplo.registro.model.MercadoLibreUserRequest;
-import com.ejemplo.registro.model.GoogleUserRequest;
-import com.ejemplo.registro.model.User;
+import com.ejemplo.registro.model.*;
+import com.ejemplo.registro.repository.AdminHasUserRepository;
 import com.ejemplo.registro.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -12,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
+import java.sql.Time;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -300,6 +299,48 @@ public class UserController {
     public List<User> obtenerUsuarios() {
         return userRepository.findAll(); // Devuelve todos los usuarios desde la base de datos
     }
+
+    @Autowired
+    private AdminHasUserRepository adminHasUserRepository;
+
+    @PutMapping("/users/{id}")
+    public ResponseEntity<String> actualizarUsuario(
+            @PathVariable int id,
+            @RequestBody User userActualizado,
+            @RequestParam int adminId) {
+
+        Optional<User> usuarioExistente = userRepository.findById(id);
+        if (usuarioExistente.isPresent()) {
+            User usuario = usuarioExistente.get();
+
+            // Actualizar los campos del usuario
+            usuario.setNombre_user(userActualizado.getNombre_user());
+            usuario.setPassword_user(userActualizado.getPassword_user());
+            usuario.setCorreo_user(userActualizado.getCorreo_user());
+            userRepository.save(usuario);
+
+            // Registrar la acción en la tabla admin_has_user
+            AdminHasUser registro = new AdminHasUser();
+            AdminHasUserId registroId = new AdminHasUserId();
+            registroId.setAdmin_ID_admin(adminId);
+            registroId.setUser_ID_user(id);
+            registroId.setFecha_accion(new Date());
+            registroId.setHora(new Time(System.currentTimeMillis()));
+
+            registro.setId(registroId);
+            registro.setAccion("Editar");
+
+            // Guardar el registro en la base de datos
+            adminHasUserRepository.save(registro);
+
+            return ResponseEntity.ok("Usuario actualizado exitosamente");
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuario no encontrado");
+        }
+    }
+
+
+
 
     @GetMapping("/vivo")
     public String serverVivo() {
