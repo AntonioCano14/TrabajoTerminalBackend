@@ -87,4 +87,14 @@ public class ConsejoController {
         }
     }
 
+    @PostMapping("/register/consejos")
+    public ResponseEntity<String> registrarConsejo(@RequestBody Consejo consejo) {
+        if (consejo.getDescripcionConsejo() == null || consejo.getDescripcionConsejo().isEmpty() ||
+                consejo.getTipoConsejo() == null || consejo.getTipoConsejo().isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("La descripción y el tipo de consejo son obligatorios");
+        }
+
+        consejoRepository.save(consejo);
+        return ResponseEntity.status(HttpStatus.CREATED).body("Consejo registrado exitosamente");
+    }
 }
