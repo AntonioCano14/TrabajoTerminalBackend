@@ -349,8 +349,8 @@ public class UserController {
             User usuario = usuarioExistente.get();
 
             // Conservar solo los datos necesarios y marcar como eliminado
-            usuario.setNombre_user(usuario.getNombre_user() + " (ELIMINADO)");
-            usuario.setCorreo_user(usuario.getCorreo_user() + " (ELIMINADO)");
+            usuario.setNombre_user("ELIMINADO - " + usuario.getNombre_user());
+            usuario.setCorreo_user("ELIMINADO - " + usuario.getCorreo_user());
             usuario.setPassword_user(null); // Eliminar la contraseña
             usuario.setFecha_registro(null); // Limpiar fecha de registro
             usuario.setUltima_sesion(null); // Limpiar última sesión
