@@ -104,7 +104,7 @@ public class UserController {
 
         String clientId = "1331780205525766"; // Reemplaza con tu Client ID
         String clientSecret = "aR6XSzJy9t7OmmufkImOuPLA123exh9F"; // Reemplaza con tu Client Secret
-        String redirectUri = "https://c32c-34-56-155-250.ngrok-free.app"; // O tu URI de redirección
+        String redirectUri = "https://a34b-34-56-155-250.ngrok-free.app"; // O tu URI de redirección
 
         // URL de autenticación de Mercado Libre
         String tokenUrl = "https://api.mercadolibre.com/oauth/token";
@@ -241,7 +241,7 @@ public class UserController {
 
         String clientId = "1331780205525766";
         String clientSecret = "aR6XSzJy9t7OmmufkImOuPLA123exh9F";
-        String redirectUri = "https://c32c-34-56-155-250.ngrok-free.app";
+        String redirectUri = "https://a34b-34-56-155-250.ngrok-free.app";
 
         String tokenUrl = "https://api.mercadolibre.com/oauth/token";
 
